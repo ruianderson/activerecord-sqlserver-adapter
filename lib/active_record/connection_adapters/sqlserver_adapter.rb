@@ -175,7 +175,12 @@ module ActiveRecord
       end
 
       def primary_key(table_name)
-        identity_column(table_name).try(:name) || schema_cache.columns(table_name).find(&:is_primary?).try(:name)
+        table_columns = schema_cache.columns(table_name)
+        # Workaround to make views work by now
+        if table_name.in?(schema_cache.view_names)
+          return table_columns.first.try(:name)
+        end
+        identity_column(table_name).try(:name) || table_columns.find(&:is_primary?).try(:name)
       end
 
       def schema_creation
